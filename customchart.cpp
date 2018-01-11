@@ -48,17 +48,12 @@ void CustomChart::setShift(qreal value)
 void CustomChart::dataToPoints()
 {
     points_.clear();
-    qreal x1, x2, x3, y1, y2, y3;
+    qreal x3, y3;
     for (int i = 0; i < data_.size(); i++) {
         if ((i < data_.size() - 1) &&
             (data_[i].x() < leftBorder_) && (data_[i + 1].x() > leftBorder_)) {
-            x1 = data_[i].x();
-            y1 = data_[i].y();
-            x2 = data_[i + 1].x();
-            y2 = data_[i + 1].y();
             x3 = leftBorder_ + 0.02;
-            if (x2 - x1 == 0) continue;
-            qreal y3 = ((x3 - x1) * (y2 - y1)) / (x2 - x1) + y1;
+            y3 = calcY3(data_[i], data_[i + 1], x3);
             points_ << transformCoord(x3, y3);
         }
         if (data_[i].x() > leftBorder_ && data_[i].x() <= rightBorder_) {
@@ -66,17 +61,21 @@ void CustomChart::dataToPoints()
         }
         if ((i < data_.size() - 1) &&
             (data_[i].x() < rightBorder_) && (data_[i + 1].x() > rightBorder_)) {
-            x1 = data_[i].x();
-            y1 = data_[i].y();
-            x2 = data_[i + 1].x();
-            y2 = data_[i + 1].y();
             x3 = rightBorder_;
-            if (x2 - x1 == 0) continue;
-            qreal y3 = ((x3 - x1) * (y2 - y1)) / (x2 - x1) + y1;
+            y3 = calcY3(data_[i], data_[i + 1], x3);
             points_ << transformCoord(x3, y3);
-
         }
     }
+}
+
+qreal CustomChart::calcY3(const QPointF &p1, const QPointF &p2, qreal x3)
+{
+    qreal x1 = p1.x();
+    qreal y1 = p1.y();
+    qreal x2 = p2.x();
+    qreal y2 = p2.y();
+    if (x2 - x1 == 0) return 0;
+    return ((x3 - x1) * (y2 - y1)) / (x2 - x1) + y1;
 }
 
 void CustomChart::drawChart(QPainter *painter)

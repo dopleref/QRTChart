@@ -28,6 +28,7 @@ signals:
 
 private:
     void dataToPoints();
+    qreal calcY3(const QPointF& p1, const QPointF& p2, qreal x3);
     void drawChart(QPainter* painter);
     QPointF transformCoord(qreal x, qreal y);
     void onTimer();
