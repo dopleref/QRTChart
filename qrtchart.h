@@ -17,7 +17,20 @@ public:
 public slots:
 
 private:
+    void regenData();
+    void dataToPoints();
+    QPointF transformCoord(qreal x, qreal  y);
+    qreal calcY3(const QPointF& p1, const QPointF& p2, qreal x3);
+    void onTimer();
+    void drawAxis(QPainter* painter);
+
+    bool firstPaint_ = true;
+
+    QPolygonF data_;
     QPolygonF points_;
+
+    qreal leftBorder_ = 0;
+    qreal rightBorder_ = 10;
 
     qreal xDimension_ = 1;
     qreal yDimension_ = 50;
@@ -38,6 +51,8 @@ private:
 
     qreal xUnit_;
     qreal yUnit_;
+
+    QTimer timer_;
 
 
 };
