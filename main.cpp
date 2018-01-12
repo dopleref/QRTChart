@@ -1,7 +1,6 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
-#include <customchart.h>
 #include <qrtchart.h>
 
 int main(int argc, char *argv[])
@@ -12,7 +11,6 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-    qmlRegisterType<CustomChart>("Chart", 1, 0, "CustomChart");
     qmlRegisterType<QRTChart>("QRTChart", 1, 0, "QRTChart");
 
     QQmlApplicationEngine engine;
