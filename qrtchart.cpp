@@ -20,11 +20,7 @@ void QRTChart::paint(QPainter *painter)
     right_ = width() - rightMargin_;
 
     drawAxis(painter);
-    //regenData();
-    if (firstPaint_) {
-        regenData();
-        firstPaint_ = false;
-    }
+    regenData();
     dataToPoints();
     painter->setPen(QPen(Qt::green, 2, Qt::SolidLine));
     painter->drawPolyline(points_);
@@ -49,25 +45,20 @@ void QRTChart::dataToPoints()
     qreal x, y;
     qreal x1, x2;
     for (int i = 0; i < data_.size(); i++) {
-        x1 = data_[i].x();
-        x2 = -1;
+        if (data_[i].x() > leftBorder_ && data_[i].x() < rightBorder_) {
+            points_ << transformCoord(data_[i].x(), data_[i].y());
+        }
         if (i < data_.size() - 1) {
-            x2 = data_[i + 1].x();
-        }
-        if (x1 < leftBorder_ && x2 > leftBorder_) {
-            x = leftBorder_ + 0.02;
-            y = calcY3(data_[i], data_[i + 1], x);
-            points_ << transformCoord(x, y);
-        }
-        else if (x1 > leftBorder_ && x1 < rightBorder_) {
-            x = x1;
-            y = data_[i].y();
-            points_ << transformCoord(x, y);
-        }
-        else if (x1 < rightBorder_ && x2 > rightBorder_) {
-            x = leftBorder_;
-            y = calcY3(data_[i], data_[i + 1], x);
-            points_ << transformCoord(x, y);
+            if (data_[i].x() < leftBorder_ && data_[i + 1].x() > leftBorder_) {
+                x = leftBorder_ + 0.02;
+                y = calcY3(data_[i], data_[i + 1], x);
+                points_ << transformCoord(x, y);
+            }
+            else if (data_[i].x() < rightBorder_ && data_[i + 1].x() > rightBorder_) {
+                x = rightBorder_;
+                y = calcY3(data_[i], data_[i + 1], x);
+                points_ << transformCoord(x, y);
+            }
         }
     }
 }
