@@ -6,11 +6,29 @@
 #include <QPointF>
 #include <QTimer>
 #include <QDateTime>
+#include <QDebug>
 
 
 struct Vertex {
     QDateTime dateTime;
     qreal value;
+
+    Vertex(QDateTime dt, qreal arg) {
+        dateTime = dt;
+        value = arg;
+    }
+
+    Vertex() {
+        dateTime = QDateTime::currentDateTime();
+        value = 0;
+    }
+
+    friend QDebug operator <<(QDebug d, Vertex v) {
+        d << "Vertex(" << v.dateTime.toString("hh:mm:ss:zzz")
+          << ", " << v.value << ")";
+        return d;
+    }
+
 };
 
 

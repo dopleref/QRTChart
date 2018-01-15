@@ -1,16 +1,17 @@
 #include "qrtchart.h"
-#include <QDebug>
 
 QRTChart::QRTChart()
 {
-    currentTime_ = QDateTime::currentDateTime();
     srand(time(NULL));
     /*
     for (int i = 0; i < 10; i++) {
         data_ << QPointF(i, rand() % 200);
     }
     */
-    data_ << QPoint(9, rand() % 200);
+    //data_ << QPoint(9, rand() % 200);
+    currentTime_ = QDateTime::currentDateTime();
+    data2_ << Vertex(currentTime_, rand() % 200);
+    qDebug() << data2_;
     connect(&timer_, &QTimer::timeout, this, &QRTChart::onTimer);
     timer_.start(10);
 }
@@ -32,6 +33,26 @@ void QRTChart::paint(QPainter *painter)
 
 void QRTChart::regenData()
 {
+    QDateTime rightTime = QDateTime::currentDateTime();
+    QDateTime leftTime = rightTime.addSecs(-21);
+    if (currentTime_.secsTo(rightTime) >= 1) {
+        currentTime_ = rightTime;
+        data2_ << Vertex(currentTime_, rand() % 200);
+        qDebug() << data_.size();
+        //qDebug() << data_;
+        //qDebug() << data2_;
+    }
+
+    data_.clear();
+    qreal x;
+    for (Vertex v : data2_) {
+        //x = leftTime.msecsTo(v.dateTime) / 1000;
+        x = leftTime.msecsTo(v.dateTime) / 2000.0;
+        //qDebug() << x;
+        data_ << QPointF(x, v.value);
+    }
+
+    /*
     data_.translate(-0.01, 0);
     qreal maxX = data_.last().x();
     if (maxX < rightBorder_) {
@@ -41,6 +62,7 @@ void QRTChart::regenData()
     if (minX < leftBorder_ - 1) {
         data_.removeFirst();
     }
+    */
 }
 
 void QRTChart::dataToPoints()
@@ -115,12 +137,14 @@ void QRTChart::drawAxis(QPainter *painter)
         yLegendCounter++;
     }
 
+    /*
     QDateTime now = QDateTime::currentDateTime();
     if (currentTime_.secsTo(now) >= 1) {
         currentTime_ = now;
         //qDebug() << currentTime_.toString("mm:ss:zzz");
     }
-    QDateTime leftTimePoint = currentTime_.addSecs(-10);
+    */
+    QDateTime leftTimePoint = currentTime_.addSecs(-21);
     size_t xLegendCounter = 0;
     for (qreal x = leftMargin_; x <= right_; x += xUnit_) {
         if (xLegendCounter % xLegendStep_ == 0) {
@@ -129,7 +153,7 @@ void QRTChart::drawAxis(QPainter *painter)
                               QString("%1").arg(xLegendCounter * xDimension_));
                               */
             painter->drawText(QPoint(x - 30, bottom_ + 30),
-                              leftTimePoint.addSecs(xLegendCounter)
+                              leftTimePoint.addSecs(xLegendCounter * 2)
                               .toString("hh:mm:ss"));
         }
         xLegendCounter++;
