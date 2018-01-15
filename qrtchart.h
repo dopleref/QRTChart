@@ -42,19 +42,22 @@ public:
 public slots:
 
 private:
-    void regenData();
-    void dataToPoints();
+    void regenData(QVector<Vertex>& tdata, QPolygonF& rdata,
+                   QDateTime& currentTime);
+    void dataToPoints(QPolygonF& rdata, QPolygonF& points);
     QPointF transformCoord(qreal x, qreal  y);
     qreal calcY3(const QPointF& p1, const QPointF& p2, qreal x3);
     void onTimer();
     void drawAxis(QPainter* painter);
     void yReScale();
 
-    QVector<Vertex> tdata_;
-    QPolygonF rdata_;
-    QPolygonF points_;
+    QVector<QVector<Vertex>> tdata_;
+    QVector<QPolygonF> rdata_;
+    QVector<QPolygonF> points_;
 
-    QDateTime  currentTime_;
+    QVector<QColor> colors_ {Qt::green, Qt::red, Qt::blue, Qt::cyan};
+
+    QVector<QDateTime> currentTime_;
 
     qreal leftBorder_ = 0;
     qreal rightBorder_ = 10;

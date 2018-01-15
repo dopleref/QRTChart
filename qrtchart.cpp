@@ -3,8 +3,15 @@
 QRTChart::QRTChart()
 {
     srand(time(NULL));
-    currentTime_ = QDateTime::currentDateTime();
-    tdata_ << Vertex(currentTime_, rand() % 200);
+    QDateTime now = QDateTime::currentDateTime();
+    for (int i = 0; i < 4; i++) {
+        currentTime_.push_back(QDateTime());
+        currentTime_[i] = now;
+        tdata_.push_back(QVector<Vertex>());
+        rdata_.push_back(QPolygonF());
+        points_.push_back(QPolygonF());
+        tdata_[i] << Vertex(currentTime_[i], rand() % 200);
+    }
     yReScale();
     connect(&timer_, &QTimer::timeout, this, &QRTChart::onTimer);
     timer_.start(10);
@@ -19,52 +26,55 @@ void QRTChart::paint(QPainter *painter)
     right_ = width() - rightMargin_;
 
     drawAxis(painter);
-    regenData();
-    dataToPoints();
-    painter->setPen(QPen(Qt::green, 2, Qt::SolidLine));
-    painter->drawPolyline(points_);
+    for (int i = 0; i < 4; i++) {
+        regenData(tdata_[i], rdata_[i], currentTime_[i]);
+        dataToPoints(rdata_[i], points_[i]);
+        painter->setPen(QPen(colors_[i], 2, Qt::SolidLine));
+        painter->drawPolyline(points_[i]);
+    }
 }
 
-void QRTChart::regenData()
+void QRTChart::regenData(QVector<Vertex> &tdata, QPolygonF &rdata,
+                         QDateTime &currentTime)
 {
     QDateTime rightTime = QDateTime::currentDateTime();
     QDateTime leftTime = rightTime.addSecs(-21);
-    if (currentTime_.secsTo(rightTime) >= 1) {
-        currentTime_ = rightTime;
-        tdata_ << Vertex(currentTime_, rand() % 200);
+    if (currentTime.secsTo(rightTime) >= 1) {
+        currentTime = rightTime;
+        tdata << Vertex(currentTime, rand() % 200);
         yReScale();
     }
 
-    if (leftTime.secsTo(tdata_.first().dateTime) < -1) {
-        tdata_.removeFirst();
+    if (leftTime.secsTo(tdata.first().dateTime) < -1) {
+        tdata.removeFirst();
     }
 
-    rdata_.clear();
+    rdata.clear();
     qreal x;
-    for (Vertex v : tdata_) {
+    for (Vertex v : tdata) {
         x = leftTime.msecsTo(v.dateTime) / 2000.0;
-        rdata_ << QPointF(x, v.value);
+        rdata << QPointF(x, v.value);
     }
 }
 
-void QRTChart::dataToPoints()
+void QRTChart::dataToPoints(QPolygonF &rdata, QPolygonF &points)
 {
-    points_.clear();
+    points.clear();
     qreal x, y;
-    for (int i = 0; i <rdata_.size(); i++) {
-        if (rdata_[i].x() > leftBorder_ && rdata_[i].x() < rightBorder_) {
-            points_ << transformCoord(rdata_[i].x(), rdata_[i].y());
+    for (int i = 0; i <rdata.size(); i++) {
+        if (rdata[i].x() > leftBorder_ && rdata[i].x() < rightBorder_) {
+            points << transformCoord(rdata[i].x(), rdata[i].y());
         }
-        if (i < rdata_.size() - 1) {
-            if (rdata_[i].x() < leftBorder_ && rdata_[i + 1].x() > leftBorder_) {
+        if (i < rdata.size() - 1) {
+            if (rdata[i].x() < leftBorder_ && rdata[i + 1].x() > leftBorder_) {
                 x = leftBorder_ + 0.02;
-                y = calcY3(rdata_[i], rdata_[i + 1], x);
-                points_ << transformCoord(x, y);
+                y = calcY3(rdata[i], rdata[i + 1], x);
+                points << transformCoord(x, y);
             }
-            else if (rdata_[i].x() < rightBorder_ && rdata_[i + 1].x() > rightBorder_) {
+            else if (rdata[i].x() < rightBorder_ && rdata[i + 1].x() > rightBorder_) {
                 x = rightBorder_;
-                y = calcY3(rdata_[i], rdata_[i + 1], x);
-                points_ << transformCoord(x, y);
+                y = calcY3(rdata[i], rdata[i + 1], x);
+                points << transformCoord(x, y);
             }
         }
     }
@@ -120,7 +130,7 @@ void QRTChart::drawAxis(QPainter *painter)
         yLegendCounter++;
     }
 
-    QDateTime leftTimePoint = currentTime_.addSecs(-21);
+    QDateTime leftTimePoint = currentTime_[0].addSecs(-21);
     size_t xLegendCounter = 0;
     for (qreal x = leftMargin_; x <= right_; x += xUnit_) {
         if (xLegendCounter % xLegendStep_ == 0) {
@@ -135,8 +145,10 @@ void QRTChart::drawAxis(QPainter *painter)
 void QRTChart::yReScale()
 {
     qreal max = 0;
-    for (Vertex v : tdata_) {
-        max = qMax(max, v.value);
+    for (QVector<Vertex> tdata : tdata_) {
+        for (Vertex v : tdata) {
+            max = qMax(max, v.value);
+        }
     }
     yDimension_ = (1.1 * max) / 5;
 }
