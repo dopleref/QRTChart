@@ -3,10 +3,14 @@
 
 QRTChart::QRTChart()
 {
+    currentTime_ = QDateTime::currentDateTime();
     srand(time(NULL));
+    /*
     for (int i = 0; i < 10; i++) {
         data_ << QPointF(i, rand() % 200);
     }
+    */
+    data_ << QPoint(9, rand() % 200);
     connect(&timer_, &QTimer::timeout, this, &QRTChart::onTimer);
     timer_.start(10);
 }
@@ -43,7 +47,6 @@ void QRTChart::dataToPoints()
 {
     points_.clear();
     qreal x, y;
-    qreal x1, x2;
     for (int i = 0; i < data_.size(); i++) {
         if (data_[i].x() > leftBorder_ && data_[i].x() < rightBorder_) {
             points_ << transformCoord(data_[i].x(), data_[i].y());
@@ -112,11 +115,22 @@ void QRTChart::drawAxis(QPainter *painter)
         yLegendCounter++;
     }
 
+    QDateTime now = QDateTime::currentDateTime();
+    if (currentTime_.secsTo(now) >= 1) {
+        currentTime_ = now;
+        //qDebug() << currentTime_.toString("mm:ss:zzz");
+    }
+    QDateTime leftTimePoint = currentTime_.addSecs(-10);
     size_t xLegendCounter = 0;
     for (qreal x = leftMargin_; x <= right_; x += xUnit_) {
         if (xLegendCounter % xLegendStep_ == 0) {
+            /*
             painter->drawText(QPoint(x, bottom_ + 30),
                               QString("%1").arg(xLegendCounter * xDimension_));
+                              */
+            painter->drawText(QPoint(x - 30, bottom_ + 30),
+                              leftTimePoint.addSecs(xLegendCounter)
+                              .toString("hh:mm:ss"));
         }
         xLegendCounter++;
     }

@@ -5,6 +5,13 @@
 #include <QPainter>
 #include <QPointF>
 #include <QTimer>
+#include <QDateTime>
+
+
+struct Vertex {
+    QDateTime dateTime;
+    qreal value;
+};
 
 
 class QRTChart : public QQuickPaintedItem
@@ -24,10 +31,11 @@ private:
     void onTimer();
     void drawAxis(QPainter* painter);
 
-    bool firstPaint_ = true;
-
+    QVector<Vertex> data2_;
     QPolygonF data_;
     QPolygonF points_;
+
+    QDateTime  currentTime_;
 
     qreal leftBorder_ = 0;
     qreal rightBorder_ = 10;
