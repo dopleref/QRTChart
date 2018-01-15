@@ -3,15 +3,9 @@
 QRTChart::QRTChart()
 {
     srand(time(NULL));
-    /*
-    for (int i = 0; i < 10; i++) {
-        data_ << QPointF(i, rand() % 200);
-    }
-    */
-    //data_ << QPoint(9, rand() % 200);
     currentTime_ = QDateTime::currentDateTime();
-    data2_ << Vertex(currentTime_, rand() % 200);
-    qDebug() << data2_;
+    tdata_ << Vertex(currentTime_, rand() % 200);
+    yReScale();
     connect(&timer_, &QTimer::timeout, this, &QRTChart::onTimer);
     timer_.start(10);
 }
@@ -37,51 +31,39 @@ void QRTChart::regenData()
     QDateTime leftTime = rightTime.addSecs(-21);
     if (currentTime_.secsTo(rightTime) >= 1) {
         currentTime_ = rightTime;
-        data2_ << Vertex(currentTime_, rand() % 200);
-        qDebug() << data_.size();
-        //qDebug() << data_;
-        //qDebug() << data2_;
+        tdata_ << Vertex(currentTime_, rand() % 200);
+        yReScale();
     }
 
-    data_.clear();
+    if (leftTime.secsTo(tdata_.first().dateTime) < -1) {
+        tdata_.removeFirst();
+    }
+
+    rdata_.clear();
     qreal x;
-    for (Vertex v : data2_) {
-        //x = leftTime.msecsTo(v.dateTime) / 1000;
+    for (Vertex v : tdata_) {
         x = leftTime.msecsTo(v.dateTime) / 2000.0;
-        //qDebug() << x;
-        data_ << QPointF(x, v.value);
+        rdata_ << QPointF(x, v.value);
     }
-
-    /*
-    data_.translate(-0.01, 0);
-    qreal maxX = data_.last().x();
-    if (maxX < rightBorder_) {
-        data_ << QPointF(maxX + 1, rand() % 200);
-    }
-    qreal minX = data_.first().x();
-    if (minX < leftBorder_ - 1) {
-        data_.removeFirst();
-    }
-    */
 }
 
 void QRTChart::dataToPoints()
 {
     points_.clear();
     qreal x, y;
-    for (int i = 0; i < data_.size(); i++) {
-        if (data_[i].x() > leftBorder_ && data_[i].x() < rightBorder_) {
-            points_ << transformCoord(data_[i].x(), data_[i].y());
+    for (int i = 0; i <rdata_.size(); i++) {
+        if (rdata_[i].x() > leftBorder_ && rdata_[i].x() < rightBorder_) {
+            points_ << transformCoord(rdata_[i].x(), rdata_[i].y());
         }
-        if (i < data_.size() - 1) {
-            if (data_[i].x() < leftBorder_ && data_[i + 1].x() > leftBorder_) {
+        if (i < rdata_.size() - 1) {
+            if (rdata_[i].x() < leftBorder_ && rdata_[i + 1].x() > leftBorder_) {
                 x = leftBorder_ + 0.02;
-                y = calcY3(data_[i], data_[i + 1], x);
+                y = calcY3(rdata_[i], rdata_[i + 1], x);
                 points_ << transformCoord(x, y);
             }
-            else if (data_[i].x() < rightBorder_ && data_[i + 1].x() > rightBorder_) {
+            else if (rdata_[i].x() < rightBorder_ && rdata_[i + 1].x() > rightBorder_) {
                 x = rightBorder_;
-                y = calcY3(data_[i], data_[i + 1], x);
+                y = calcY3(rdata_[i], rdata_[i + 1], x);
                 points_ << transformCoord(x, y);
             }
         }
@@ -132,30 +114,29 @@ void QRTChart::drawAxis(QPainter *painter)
     for (int y = bottom_; y >= topMargin_; y -= yUnit_) {
         if (yLegendCounter % yLegendStep_ == 0) {
             painter->drawText(QPoint(leftMargin_ - 40, y),
-                              QString("%1").arg(yLegendCounter * yDimension_));
+                              QString("%1")
+                              .arg(yLegendCounter * yDimension_, 0, 'f', 0));
         }
         yLegendCounter++;
     }
 
-    /*
-    QDateTime now = QDateTime::currentDateTime();
-    if (currentTime_.secsTo(now) >= 1) {
-        currentTime_ = now;
-        //qDebug() << currentTime_.toString("mm:ss:zzz");
-    }
-    */
     QDateTime leftTimePoint = currentTime_.addSecs(-21);
     size_t xLegendCounter = 0;
     for (qreal x = leftMargin_; x <= right_; x += xUnit_) {
         if (xLegendCounter % xLegendStep_ == 0) {
-            /*
-            painter->drawText(QPoint(x, bottom_ + 30),
-                              QString("%1").arg(xLegendCounter * xDimension_));
-                              */
             painter->drawText(QPoint(x - 30, bottom_ + 30),
                               leftTimePoint.addSecs(xLegendCounter * 2)
                               .toString("hh:mm:ss"));
         }
         xLegendCounter++;
     }
+}
+
+void QRTChart::yReScale()
+{
+    qreal max = 0;
+    for (Vertex v : tdata_) {
+        max = qMax(max, v.value);
+    }
+    yDimension_ = (1.1 * max) / 5;
 }

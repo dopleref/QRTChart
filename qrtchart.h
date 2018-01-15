@@ -48,9 +48,10 @@ private:
     qreal calcY3(const QPointF& p1, const QPointF& p2, qreal x3);
     void onTimer();
     void drawAxis(QPainter* painter);
+    void yReScale();
 
-    QVector<Vertex> data2_;
-    QPolygonF data_;
+    QVector<Vertex> tdata_;
+    QPolygonF rdata_;
     QPolygonF points_;
 
     QDateTime  currentTime_;
