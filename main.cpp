@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 
 #include <qrtchart.h>
+#include <glchart.h>
 
 int main(int argc, char *argv[])
 {
@@ -12,6 +13,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     qmlRegisterType<QRTChart>("QRTChart", 1, 0, "QRTChart");
+    qmlRegisterType<GLChart>("Shapes", 1, 0, "Triangle");
 
     QQmlApplicationEngine engine;
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

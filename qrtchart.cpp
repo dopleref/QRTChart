@@ -2,6 +2,8 @@
 
 QRTChart::QRTChart()
 {
+    setAntialiasing(true);
+    setRenderTarget(QQuickPaintedItem::FramebufferObject);
     srand(time(NULL));
     QDateTime now = QDateTime::currentDateTime();
     for (int i = 0; i < 4; i++) {
