@@ -64,7 +64,7 @@ void QRTChart::dataToPoints(QPolygonF &rdata, QPolygonF &points)
     points.clear();
     qreal x, y;
     for (int i = 0; i <rdata.size(); i++) {
-        if (rdata[i].x() > leftBorder_ && rdata[i].x() < rightBorder_) {
+        if (rdata[i].x() > leftBorder_ && rdata[i].x() <= rightBorder_) {
             points << transformCoord(rdata[i].x(), rdata[i].y());
         }
         if (i < rdata.size() - 1) {

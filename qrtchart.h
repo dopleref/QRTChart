@@ -55,7 +55,8 @@ private:
     QVector<QPolygonF> rdata_;
     QVector<QPolygonF> points_;
 
-    QVector<QColor> colors_ {Qt::green, Qt::red, Qt::blue, Qt::cyan};
+    QVector<QColor> colors_ {QColor(0x209fdf), QColor(0x99ca53),
+                QColor(0xf6a625), QColor(0x6d5fd5)};
 
     QVector<QDateTime> currentTime_;
 
