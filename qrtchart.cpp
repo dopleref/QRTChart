@@ -12,7 +12,7 @@ QRTChart::QRTChart()
         tdata_.push_back(QVector<Vertex>());
         rdata_.push_back(QPolygonF());
         points_.push_back(QPolygonF());
-        tdata_[i] << Vertex(currentTime_[i], rand() % 200);
+        tdata_[i] << Vertex(currentTime_[i], 0);
     }
     yReScale();
     connect(&timer_, &QTimer::timeout, this, &QRTChart::onTimer);
@@ -29,10 +29,54 @@ void QRTChart::paint(QPainter *painter)
 
     drawAxis(painter);
     for (int i = 0; i < 4; i++) {
-        regenData(tdata_[i], rdata_[i], currentTime_[i]);
+        moveChart(tdata_[i], rdata_[i], currentTime_[i]);
+        //regenData(tdata_[i], rdata_[i], currentTime_[i]);
         dataToPoints(rdata_[i], points_[i]);
         painter->setPen(QPen(colors_[i], 2, Qt::SolidLine));
         painter->drawPolyline(points_[i]);
+    }
+}
+
+void QRTChart::append(int graphNumber, qreal value)
+{
+    if (tdata_.size() <= graphNumber || rdata_.size() <= graphNumber) {
+        return;
+    }
+
+    QDateTime rightTime = QDateTime::currentDateTime();
+    QDateTime leftTime = rightTime.addSecs(-21);
+    tdata_[graphNumber] << Vertex(rightTime, value);
+
+    if (leftTime.secsTo(tdata_[graphNumber].first().dateTime) < -1) {
+        tdata_[graphNumber].removeFirst();
+    }
+
+    rdata_[graphNumber].clear();
+    qreal x;
+    for (Vertex v : tdata_[graphNumber]) {
+        x = leftTime.msecsTo(v.dateTime) / 2000.0;
+        rdata_[graphNumber] << QPointF(x, v.value);
+    }
+}
+void QRTChart::moveChart(QVector<Vertex> &tdata, QPolygonF &rdata,
+                         QDateTime &currentTime)
+{
+    QDateTime rightTime = QDateTime::currentDateTime();
+    QDateTime leftTime = rightTime.addSecs(-21);
+    if (currentTime.secsTo(rightTime) >= 1) {
+        currentTime = rightTime;
+        yReScale();
+    }
+
+    if (leftTime.secsTo(tdata.first().dateTime) < -1) {
+        tdata.removeFirst();
+    }
+
+    rdata.clear();
+    qreal x;
+    for (Vertex v : tdata) {
+        x = leftTime.msecsTo(v.dateTime) / 2000.0;
+        rdata << QPointF(x, v.value);
     }
 }
 
@@ -64,7 +108,7 @@ void QRTChart::dataToPoints(QPolygonF &rdata, QPolygonF &points)
     points.clear();
     qreal x, y;
     for (int i = 0; i <rdata.size(); i++) {
-        if (rdata[i].x() > leftBorder_ && rdata[i].x() <= rightBorder_) {
+        if (rdata[i].x() >= leftBorder_ && rdata[i].x() <= rightBorder_) {
             points << transformCoord(rdata[i].x(), rdata[i].y());
         }
         if (i < rdata.size() - 1) {
@@ -106,6 +150,12 @@ void QRTChart::onTimer()
 
 void QRTChart::drawAxis(QPainter *painter)
 {
+    qreal lw = 100;
+    drawLengend(painter, leftMargin_, topMargin_ - 35, 0x209fdf, chartName1_);
+    drawLengend(painter, leftMargin_ + lw, topMargin_ - 35, 0x99ca53, chartName2_);
+    drawLengend(painter, leftMargin_ + 2 * lw, topMargin_ - 35, 0xf6a625, chartName3_);
+    drawLengend(painter, leftMargin_ + 3 * lw, topMargin_ - 35, 0x6d5fd5, chartName4_);
+
     painter->setPen(QPen(Qt::black, 1.0, Qt::SolidLine));
     painter->drawLine(leftMargin_, topMargin_, leftMargin_, bottom_);
     painter->drawLine(leftMargin_, bottom_, right_, bottom_);
@@ -142,6 +192,16 @@ void QRTChart::drawAxis(QPainter *painter)
         }
         xLegendCounter++;
     }
+}
+
+void QRTChart::drawLengend(QPainter* painter,qreal x, qreal y,
+                           const QColor &color, const QString &text)
+{
+    painter->setPen(QPen(Qt::black, 1.0, Qt::SolidLine));
+    qreal a = 10;
+    painter->fillRect(x, y, a, a, QBrush(color));
+    painter->drawRect(x, y, a, a);
+    painter->drawText(QPoint(x + a + 10, y + a), text);
 }
 
 void QRTChart::yReScale()

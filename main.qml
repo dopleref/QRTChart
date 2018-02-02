@@ -12,7 +12,21 @@ Window {
 
     QRTChart {
         id: qrtchart
+        chartName1: "КРЛ1"
+        chartName2: "КРЛ2"
+        chartName3: "КРЛ3"
+        chartName4: "КРЛ4"
         anchors.fill: parent
+    }
+
+    Timer {
+        interval: 1000; running: true; repeat: true
+        onTriggered: {
+            for (var i = 0; i < 4; i++) {
+                var randValue = Math.random() * 200;
+                qrtchart.append(i, randValue);
+            }
+        }
     }
 
     /*

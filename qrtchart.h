@@ -1,6 +1,7 @@
 #ifndef QRTCHART_H
 #define QRTCHART_H
 
+#include <QObject>
 #include <QQuickPaintedItem>
 #include <QPainter>
 #include <QPointF>
@@ -35,13 +36,26 @@ struct Vertex {
 class QRTChart : public QQuickPaintedItem
 {
     Q_OBJECT
+
+    Q_PROPERTY(QString chartName1 WRITE setChartName1)
+    Q_PROPERTY(QString chartName2 WRITE setChartName2)
+    Q_PROPERTY(QString chartName3 WRITE setChartName3)
+    Q_PROPERTY(QString chartName4 WRITE setChartName4)
 public:
     QRTChart();
     virtual void paint(QPainter *painter) Q_DECL_OVERRIDE;
+    Q_INVOKABLE void append(int graphNumber, qreal value);
 
 public slots:
+    void setChartName1(QString arg) { chartName1_ = arg; }
+    void setChartName2(QString arg) { chartName2_ = arg; }
+    void setChartName3(QString arg) { chartName3_ = arg; }
+    void setChartName4(QString arg) { chartName4_ = arg; }
 
 private:
+    void moveChart(QVector<Vertex> &tdata, QPolygonF &rdata,
+                         QDateTime &currentTime);
+
     void regenData(QVector<Vertex>& tdata, QPolygonF& rdata,
                    QDateTime& currentTime);
     void dataToPoints(QPolygonF& rdata, QPolygonF& points);
@@ -49,7 +63,13 @@ private:
     qreal calcY3(const QPointF& p1, const QPointF& p2, qreal x3);
     void onTimer();
     void drawAxis(QPainter* painter);
+    void drawLengend(QPainter *painter, qreal x, qreal y, const QColor& color, const QString& text);
     void yReScale();
+
+    QString chartName1_ = "chart1";
+    QString chartName2_ = "chart2";
+    QString chartName3_ = "chart3";
+    QString chartName4_ = "chart4";
 
     QVector<QVector<Vertex>> tdata_;
     QVector<QPolygonF> rdata_;
